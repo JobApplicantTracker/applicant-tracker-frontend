@@ -1,0 +1,8 @@
+export default function AboutUsPage() {
+    return (
+        <div>
+            <h1>About Us Page</h1>
+            {/* Add your register form or logic here */}
+        </div>
+    );
+}

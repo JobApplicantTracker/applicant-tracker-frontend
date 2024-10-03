@@ -4,23 +4,24 @@ import { AppBar, Box, Toolbar, IconButton, Typography, Container, Avatar, Button
 import AdbIcon from '@mui/icons-material/Adb';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
+import { useState } from 'react';
 
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const pages = ['Poslovi', 'O nama', 'Kontakt'];
 
 function TheHeader() {
-    const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const router = useRouter();
-    const { isLoggedIn, user, logout } = useUser();
+    const { isLoggedIn, logout } = useUser();
 
     const handleLogout = () => {
         logout();
-        router.push('/'); // Redirect to login page after logout
+        handleCloseUserMenu()
+        router.push('/');
     };
 
     const handleProfile = () => {
         handleCloseUserMenu();
-        handleNavigate('/profile'); // Redirect to profile page
+        handleNavigate('/profile');
     };
 
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -32,6 +33,7 @@ function TheHeader() {
     };
 
     const handleNavigate = (path: string) => {
+        handleCloseUserMenu()
         router.push(path);
     };
 

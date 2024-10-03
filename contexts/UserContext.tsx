@@ -1,10 +1,11 @@
 "use client";
 import { LoginResponseDTO } from '@/types/LoginResponseDTO.types';
+import { UsersDTO } from '@/types/UsersDto.types';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface UserContextType {
     isLoggedIn: boolean;
-    user: any; // Adjust the type as per your user structure
+    user: UsersDTO | null; // Adjust the type as per your user structure
     loginContextSaving: (loginResponse: LoginResponseDTO) => void;
     logout: () => void;
 }
@@ -13,14 +14,16 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<UsersDTO | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            // Decode the token to get user info or validate the token
+        // Rehydrate user from localStorage when the app starts
+        const accessToken = localStorage.getItem('accessToken');
+        const savedUser = localStorage.getItem('user');
+
+        if (accessToken && savedUser) {
+            setUser(JSON.parse(savedUser)); // Parse saved user data
             setIsLoggedIn(true);
-            // Optionally, set user info from the token
         }
     }, []);
 
@@ -30,6 +33,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             setIsLoggedIn(true);
             localStorage.setItem('accessToken', loginResponse.backendTokens.accessToken);
             localStorage.setItem('refreshToken', loginResponse.backendTokens.refreshToken);
+            localStorage.setItem('user', JSON.stringify(loginResponse.user));
         }
     };
 
@@ -38,6 +42,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoggedIn(false);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
     };
 
     return (
