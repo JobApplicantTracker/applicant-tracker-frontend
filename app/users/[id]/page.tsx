@@ -20,6 +20,7 @@ const UserProfilePage = () => {
     const { id } = useParams();
     const [permision, setPermision] = useState<boolean>(false)
     const isAdmin = user?.role.name === 'admin'
+    console.log(isAdmin)
     const [userData, setUserData] = useState<UpdateUserDTO>({
         firstName: '',
         lastName: '',
@@ -181,7 +182,7 @@ const UserProfilePage = () => {
                             label="Role"
                             fullWidth
                             select
-                            aria-readonly={!isAdmin}
+                            disabled={!isAdmin}
                             value={userData.role.idRole}
                             onChange={(e) => {
                                 const selectedRole = roles.find(role => role.idRole === Number(e.target.value));
