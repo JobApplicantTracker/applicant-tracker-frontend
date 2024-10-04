@@ -8,7 +8,6 @@ import { useState } from 'react';
 
 const pages = {
     jobs: "Jobs",
-    users: 'Users',
     aboutUs: "About Us",
     contact: "Contact"
 };
@@ -43,7 +42,9 @@ function TheHeader() {
     };
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" sx={{
+            mb: '20px',
+        }}>
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     <AdbIcon sx={{ mr: 2 }} />
@@ -65,13 +66,15 @@ function TheHeader() {
                     </Typography>
 
                     <Box sx={{ flexGrow: 1 }}>
-                        {(user?.role.name === 'admin' || user?.role.name === 'employee') && (
-                            <Button
-                                sx={{ my: 2, color: 'white' }}
-                                onClick={() => handleNavigate('/users')}
-                            >
-                                Users
-                            </Button>
+                        {user && (user.role.name === 'admin' || user.role.name === 'employee') && (
+                            <>
+                                <Button
+                                    sx={{ my: 2, color: 'white' }}
+                                    onClick={() => handleNavigate('/users')}
+                                >
+                                    Users
+                                </Button>
+                            </>
                         )}
                         {Object.entries(pages).map(([key, value]) => (
                             <Button
@@ -90,6 +93,10 @@ function TheHeader() {
                                 <Tooltip title="Open settings">
                                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                                         <Avatar alt="Remy Sharp" src="" />
+                                        <Typography color='white'>
+
+                                            &nbsp;{user?.firstName}
+                                        </Typography>
                                     </IconButton>
                                 </Tooltip>
                                 <Menu

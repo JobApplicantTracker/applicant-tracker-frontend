@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Container, Typography, CircularProgress, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar } from "@mui/material";
+import { Container, Typography, CircularProgress, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar, CardContent, Card } from "@mui/material";
 import axios from "axios";
 import { BACKEND_URL } from "@/constants/constants";
 import { useUser } from "@/contexts/UserContext";
@@ -48,6 +48,9 @@ export default function JobPage() {
                 }
             );
             setMessage(response.data);
+            setTimeout(() => {
+                router.push("/jobs");
+            }, 2000);
         } catch (error) {
             console.error("Error applying for the job:", error);
             setMessage("Failed to apply for the job.");
@@ -77,22 +80,24 @@ export default function JobPage() {
 
     return (
         <Container>
-            <Typography variant="h3">{job.name}</Typography>
-            <Typography variant="h4">{job.description}</Typography>
-            <Typography variant="body1">Currently applied: {job.candidates.length}.</Typography>
+            <Card>
+                <CardContent>
+                    <Typography variant="h3" sx={{ pb: '10px' }}>{job.name}</Typography>
+                    <Typography variant="h5" sx={{ pb: '10px' }}>Currently applied: {job.candidates.length}</Typography>
+                    <Typography variant="h4" sx={{ pb: '10px' }}>Description:</Typography>
+                    <Typography variant="h5" sx={{ pb: '10px' }}>{job.description}</Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        disabled={isAdmin}
+                        style={{ marginTop: '16px' }}
+                        onClick={handleApply}
+                    >
+                        APPLY
+                    </Button>
+                </CardContent>
 
-            {/* Apply Button */}
-            <Button
-                variant="contained"
-                color="primary"
-                disabled={isAdmin}
-                style={{ marginTop: '16px' }}
-                onClick={handleApply}
-            >
-                APPLY
-            </Button>
-
-            {/* Candidates Table */}
+            </Card>
             {(isAdmin || isEmployee) && job.candidates && job.candidates.length > 0 && (
                 <TableContainer component={Paper} style={{ marginTop: '16px' }}>
                     <Table>
@@ -120,6 +125,7 @@ export default function JobPage() {
                 autoHideDuration={6000}
                 onClose={() => setMessage(null)}
                 message={message}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             />
         </Container>
     );
