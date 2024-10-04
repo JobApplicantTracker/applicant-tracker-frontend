@@ -1,4 +1,6 @@
 export type UsersDTO = {
+    idUser: number;
+
     firstName: string;
 
     lastName: string;

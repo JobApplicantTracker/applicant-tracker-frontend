@@ -6,12 +6,17 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useState } from 'react';
 
-const pages = ['Poslovi', 'O nama', 'Kontakt'];
+const pages = {
+    jobs: "Jobs",
+    users: 'Users',
+    aboutUs: "About Us",
+    contact: "Contact"
+};
 
 function TheHeader() {
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const router = useRouter();
-    const { isLoggedIn, logout } = useUser();
+    const { isLoggedIn, logout, user } = useUser();
 
     const handleLogout = () => {
         logout();
@@ -21,7 +26,7 @@ function TheHeader() {
 
     const handleProfile = () => {
         handleCloseUserMenu();
-        handleNavigate('/profile');
+        handleNavigate(`/users/${user ? user.idUser : ''}`);
     };
 
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -60,12 +65,21 @@ function TheHeader() {
                     </Typography>
 
                     <Box sx={{ flexGrow: 1 }}>
-                        {pages.map((page) => (
+                        {(user?.role.name === 'admin' || user?.role.name === 'employee') && (
                             <Button
-                                key={page}
                                 sx={{ my: 2, color: 'white' }}
-                                onClick={() => handleNavigate(`/${page.toLowerCase()}`)}>
-                                {page}
+                                onClick={() => handleNavigate('/users')}
+                            >
+                                Users
+                            </Button>
+                        )}
+                        {Object.entries(pages).map(([key, value]) => (
+                            <Button
+                                key={key} // Use the key for the unique identifier
+                                sx={{ my: 2, color: 'white' }}
+                                onClick={() => handleNavigate(`/${key}`)} // Use key for routing
+                            >
+                                {value}
                             </Button>
                         ))}
                     </Box>
