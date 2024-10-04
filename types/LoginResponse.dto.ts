@@ -1,4 +1,4 @@
-import { UsersDTO } from "./UsersDto.types"
+import { UsersDTO } from "./Users.dto"
 
 
 export type LoginResponseDTO = {

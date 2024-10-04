@@ -1,6 +1,6 @@
 import { BACKEND_URL } from '@/constants/constants';
-import { LoginResponseDTO } from '@/types/LoginResponseDTO.types';
-import { CreateUserDTO, UsersDTO } from '@/types/UsersDto.types';
+import { LoginResponseDTO } from '@/types/LoginResponse.dto';
+import { CreateUserDTO, UsersDTO } from '@/types/Users.dto';
 import axios from 'axios';
 
 // Update this to your backend URL

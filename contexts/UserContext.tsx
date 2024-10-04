@@ -1,6 +1,6 @@
 "use client";
-import { LoginResponseDTO } from '@/types/LoginResponseDTO.types';
-import { UsersDTO } from '@/types/UsersDto.types';
+import { LoginResponseDTO } from '@/types/LoginResponse.dto';
+import { UsersDTO } from '@/types/Users.dto';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface UserContextType {

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Container, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext'; // Use the context for admin check
-import { CreateUserDTO, UsersDTO } from '@/types/UsersDto.types';
+import { CreateUserDTO, UsersDTO } from '@/types/Users.dto';
 import { register } from '@/api/auth';
 
 export default function RegisterPage() {
