@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TextField, Button, Container, Typography, Box } from "@mui/material";
+import { TextField, Button, Container, Typography, Box, Snackbar } from "@mui/material";
 import axios from "axios";
 import { BACKEND_URL } from "@/constants/constants";
 import { useUser } from "@/contexts/UserContext";
@@ -10,16 +10,16 @@ import { useUser } from "@/contexts/UserContext";
 export default function CreateJobPage() {
     const [name, setName] = useState("");
     const [numOfSeats, setNumOfSeats] = useState<number | string>("");
+    const [city, setCity] = useState("")
     const [description, setDescription] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
     const router = useRouter();
     const { user } = useUser();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        setSuccessMessage(null);
 
         if (!user) {
             router.push("/login");
@@ -37,6 +37,7 @@ export default function CreateJobPage() {
                 `${BACKEND_URL}/jobs/create`,
                 {
                     name,
+                    city,
                     numOfSeats: parseInt(numOfSeats as string, 10),
                     description,
                 },
@@ -46,20 +47,21 @@ export default function CreateJobPage() {
                     },
                 }
             );
-            setSuccessMessage("Job created successfully!");
+            setMessage("Job created successfully!");
             setName("");
             setNumOfSeats("");
             setDescription("");
+            setCity('')
             setTimeout(() => {
                 router.push("/jobs");
-            }, 2000);
+            }, 1000);
         } catch (err: any) {
             setError(err.response?.data?.message || "Failed to create job.");
         }
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ mb: '25px', mt: '25px' }}>
             <Typography variant="h4" gutterBottom>
                 Create Job
             </Typography>
@@ -67,12 +69,6 @@ export default function CreateJobPage() {
             {error && (
                 <Typography color="error" gutterBottom>
                     {error}
-                </Typography>
-            )}
-
-            {successMessage && (
-                <Typography color="primary" gutterBottom>
-                    {successMessage}
                 </Typography>
             )}
 
@@ -84,6 +80,15 @@ export default function CreateJobPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    margin="normal"
+                />
+                <TextField
+                    label="City"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
                     margin="normal"
                 />
                 <TextField
@@ -113,6 +118,13 @@ export default function CreateJobPage() {
                     </Button>
                 </Box>
             </form>
+            <Snackbar
+                open={Boolean(message)}
+                autoHideDuration={6000}
+                onClose={() => setMessage(null)}
+                message={message}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            />
         </Container>
     );
 }

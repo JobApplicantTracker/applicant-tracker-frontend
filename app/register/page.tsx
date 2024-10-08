@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Typography, Container, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
+import { TextField, Button, Typography, Container, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent, Snackbar } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext'; // Use the context for admin check
 import { CreateUserDTO, UsersDTO } from '@/types/Users.dto';
 import { register } from '@/api/auth';
+import { UniversitiesDTO } from '@/types/Universities.dto';
+import axios from 'axios';
+import { BACKEND_URL, genderTypes } from '@/constants/constants';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState<CreateUserDTO>({
@@ -14,18 +17,35 @@ export default function RegisterPage() {
         jmbg: '',
         phone: '',
         city: '',
-        school: '',
         email: '',
         password: '',
+        gender: '',
+        idUniversity: null,
         idRole: 3
     });
     const [error, setError] = useState<string | null>(null);
     const { user } = useUser(); // Get the current user from the context
     const router = useRouter();
-    const isAdmin = user && user.role.idRole == 1 // Assuming admin role has idRole of 1
+    const isAdmin = user && user.role.idRole == 1
+    const [universities, setUniversities] = useState<UniversitiesDTO[]>([])
+    const [message, setMessage] = useState<string | null>(null);
+
+
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            try {
+                const response = await axios.get(`${BACKEND_URL}/universities`);
+                setUniversities(response.data);
+            } catch (err) {
+                console.error('Failed to fetch universities');
+            }
+        };
+        fetchUniversities();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
         const { name, value } = e.target;
+        console.log(value)
         setFormData({
             ...formData,
             [name as keyof CreateUserDTO]: value,
@@ -35,7 +55,7 @@ export default function RegisterPage() {
     const handleRoleChange = (e: SelectChangeEvent<number>) => {
         setFormData({
             ...formData,
-            idRole: Number(e.target.value), // Ensure the value is treated as a number
+            idRole: Number(e.target.value),
         });
     };
 
@@ -43,16 +63,34 @@ export default function RegisterPage() {
         e.preventDefault();
         setError(null);
 
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            setError('Invalid email format');
+            return;
+        }
+        if (formData.phone.length < 9 || formData.phone.length > 10) {
+            setError('Phone number must be 9 to 10 digits long');
+            return;
+        }
+        if (formData.jmbg.length !== 13) {
+            setError('JMBG must be 13 digits long');
+            return;
+        }
+        if (formData.idUniversity === null) {
+            setError('You need to choose a university');
+            return;
+        }
+
         try {
-            await register(formData); // Adjust according to your register API
-            router.push('/'); // Redirect to homepage or login page
+            await register(formData);
+            setMessage('User registered successfully');
+            setTimeout(() => router.push('/'), 1000);
         } catch (err: any) {
             setError(err.message || 'Registration failed');
         }
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ mb: '25px', mt: '25px' }}>
             <Typography variant="h4" gutterBottom>
                 Register
             </Typography>
@@ -83,6 +121,7 @@ export default function RegisterPage() {
                     fullWidth
                     required
                     margin="normal"
+                    type='number'
                 />
                 <TextField
                     label="Phone"
@@ -92,6 +131,7 @@ export default function RegisterPage() {
                     fullWidth
                     required
                     margin="normal"
+                    type='number'
                 />
                 <TextField
                     label="City"
@@ -103,14 +143,20 @@ export default function RegisterPage() {
                     margin="normal"
                 />
                 <TextField
-                    label="School"
-                    name="school"
-                    value={formData.school}
-                    onChange={handleChange}
+                    label="Gender"
                     fullWidth
-                    required
+                    select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                     margin="normal"
-                />
+                    required
+                >
+                    {genderTypes.map((gender) => (
+                        <MenuItem key={gender} value={gender}>
+                            {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                        </MenuItem>
+                    ))}
+                </TextField>
                 <TextField
                     label="Email"
                     name="email"
@@ -131,8 +177,21 @@ export default function RegisterPage() {
                     required
                     margin="normal"
                 />
-
-                {/* Only show the role select field if the current user is an admin */}
+                <TextField
+                    label="University"
+                    fullWidth
+                    select
+                    value={formData.idUniversity || ''}
+                    onChange={(e) => setFormData({ ...formData, idUniversity: Number(e.target.value) })}
+                    margin="normal"
+                    required
+                >
+                    {universities.map((university) => (
+                        <MenuItem key={university.idUniversity} value={university.idUniversity}>
+                            {university.name}
+                        </MenuItem>
+                    ))}
+                </TextField>
                 {isAdmin && (
                     <FormControl fullWidth margin="normal">
                         <InputLabel id="role-select-label">Role</InputLabel>
@@ -156,6 +215,13 @@ export default function RegisterPage() {
                     Register
                 </Button>
             </form>
+            <Snackbar
+                open={Boolean(message)}
+                autoHideDuration={6000}
+                onClose={() => setMessage(null)}
+                message={message}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            />
         </Container>
     );
 }

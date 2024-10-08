@@ -69,7 +69,7 @@ export default function UsersPage() {
         }
     }
     return (
-        <Container>
+        <Container sx={{ mb: '25px', mt: '25px' }}>
             <Box sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
@@ -149,9 +149,9 @@ export default function UsersPage() {
                                 <TableCell>{currUser.role.name}</TableCell>
                                 <TableCell>
                                     <IconButton>
-                                        <EditIcon />
+                                        <EditIcon onClick={() => router.push(`/users/${currUser.idUser}`)} />
                                     </IconButton>
-                                    {user && user.role.name == 'admin' && (
+                                    {user && user.role.name == 'admin' && currUser.idUser !== user.idUser && (
                                         <IconButton onClick={() => handleDeleteUser(currUser.idUser)}>
                                             <DeleteIcon />
                                         </IconButton>)}

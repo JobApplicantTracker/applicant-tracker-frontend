@@ -28,14 +28,16 @@ export default function LoginPage() {
             if (data) {
                 loginContextSaving(data); // Set user data in context
                 router.push('/');
-            } // Redirect to homepage or dashboard}
+            } else {
+                setError('Invalid Credentials. Check Email and Password!')
+            }
         } catch (err: any) {
             setError(err.message || 'Login failed');
         }
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ mb: '25px', mt: '25px' }}>
             <Typography variant="h4" gutterBottom>
                 Login
             </Typography>

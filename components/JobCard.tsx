@@ -7,6 +7,7 @@ export const JobCard = ({ job }: { job: JobsDTO }) => (
             <CardContent>
                 <Typography variant="h5">{job.name}</Typography>
                 <Typography variant="subtitle1">{`Seats: ${job.numOfSeats}`}</Typography>
+                <Typography variant="subtitle1">{`City: ${job.city}`}</Typography>
                 <Typography variant="body2">{job.description}</Typography>
             </CardContent>
         </Card>

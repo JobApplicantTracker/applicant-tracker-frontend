@@ -39,7 +39,7 @@ export default function JobsPage() {
 
     if (loading) {
         return (
-            <Container>
+            <Container sx={{ mb: '25px', mt: '25px' }}>
                 <CircularProgress />
             </Container>
         );
@@ -47,7 +47,7 @@ export default function JobsPage() {
 
     if (error) {
         return (
-            <Container>
+            <Container sx={{ mb: '25px', mt: '25px' }}>
                 <Typography variant="h6" color="error">
                     {error}
                 </Typography>
@@ -56,7 +56,7 @@ export default function JobsPage() {
     }
 
     return (
-        <Container>
+        <Container sx={{ mb: '25px', mt: '25px' }}>
             <Box
                 display="flex"
                 justifyContent="space-between" // Ensures the elements are spaced apart

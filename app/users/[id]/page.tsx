@@ -1,33 +1,36 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, MenuItem, TextField, Typography, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Box, Button, Container, MenuItem, TextField, Typography, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Snackbar, IconButton } from "@mui/material";
 import axios from 'axios';
-import { BACKEND_URL } from "@/constants/constants";
-import { useRouter, useParams } from 'next/navigation';
+import { BACKEND_URL, genderTypes } from "@/constants/constants";
+import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { JobsDTO } from '@/types/Jobs.dto';
 import { UpdateUserDTO } from '@/types/Users.dto';
 import { Role } from '@/types/Role.dto';
-
+import { UniversitiesDTO } from '@/types/Universities.dto';
+import GridViewIcon from '@mui/icons-material/GridView';
 
 const UserProfilePage = () => {
     const [roles, setRoles] = useState<Role[]>([]);
     const [jobs, setJobs] = useState<JobsDTO[]>([]);
+    const [createdJobs, setCreatedJobs] = useState<JobsDTO[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null)
     const { user } = useUser();
-    const router = useRouter();
     const { id } = useParams();
     const [permision, setPermision] = useState<boolean>(false)
     const isAdmin = user?.role.name === 'admin'
-    console.log(isAdmin)
+    const [universities, setUniversities] = useState<UniversitiesDTO[]>([])
+    const router = useRouter()
     const [userData, setUserData] = useState<UpdateUserDTO>({
         firstName: '',
         lastName: '',
         jmbg: '',
         phone: '',
         city: '',
-        school: '',
+        gender: '',
+        school: null,
         role: { idRole: 3, name: 'candidat' }
     });
 
@@ -41,7 +44,7 @@ const UserProfilePage = () => {
                 if (userResponse.data) {
                     setUserData({ ...userResponse.data });
 
-                    const jobsResponse = await axios.get(`${BACKEND_URL}/jobs/user/${id}`, {
+                    const jobsResponse = await axios.get(`${BACKEND_URL}/jobs/user/applied/${id}`, {
                         headers: { Authorization: `Bearer ${accessToken}` }
                     });
                     setJobs(jobsResponse.data);
@@ -77,6 +80,27 @@ const UserProfilePage = () => {
         setSuccess(null)
     }, [id, user]);
 
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            try {
+                const response = await axios.get(`${BACKEND_URL}/universities`);
+                setUniversities(response.data);
+            } catch (err) {
+                console.error('Failed to fetch universities');
+            }
+        };
+        fetchUniversities();
+        const fetchCreatedJobs = async () => {
+            try {
+                const response = await axios.get(`${BACKEND_URL}/jobs/created/${id}`);
+                setCreatedJobs(response.data);
+            } catch (err) {
+                console.error('Failed to fetch universities');
+            }
+        };
+        fetchCreatedJobs()
+    }, []);
+
     const handleSaveChanges = async () => {
         setError(null);
         setSuccess(null)
@@ -100,7 +124,7 @@ const UserProfilePage = () => {
         )
     }
     else {
-        return (<Box maxWidth="md" margin="auto">
+        return (<Box maxWidth="md" margin="auto" sx={{ mb: '25px', mt: '25px' }}>
             <Typography variant="h4" gutterBottom>
                 {`${userData.firstName} ${userData.lastName}`}
             </Typography>
@@ -161,15 +185,6 @@ const UserProfilePage = () => {
                     </Box>
                     <Box flexBasis={{ xs: "100%", md: "48%" }}>
                         <TextField
-                            label="School"
-                            fullWidth
-                            value={userData.school}
-                            onChange={(e) => setUserData({ ...userData, school: e.target.value })}
-                            margin="normal"
-                        />
-                    </Box>
-                    <Box flexBasis={{ xs: "100%", md: "48%" }}>
-                        <TextField
                             label="Email"
                             aria-readonly
                             fullWidth
@@ -179,11 +194,49 @@ const UserProfilePage = () => {
                     </Box>
                     <Box flexBasis={{ xs: "100%", md: "48%" }}>
                         <TextField
+                            label="Gender"
+                            fullWidth
+                            select
+                            value={userData.gender}
+                            onChange={(e) => setUserData({ ...userData, gender: e.target.value })}
+                            margin="normal"
+                            required
+                        >
+                            {genderTypes.map((gender) => (
+                                <MenuItem key={gender} value={gender}>
+                                    {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Box>
+                    <Box flexBasis={{ xs: "100%", md: "48%" }}>
+                        <TextField
+                            label="University"
+                            fullWidth
+                            select
+                            value={userData.school?.idUniversity}
+                            onChange={(e) => {
+                                const selectedUniversity = universities.find(uni => uni.idUniversity === Number(e.target.value));
+                                if (selectedUniversity)
+                                    setUserData({ ...userData, school: selectedUniversity });
+                            }}
+                            margin="normal"
+                            required
+                        >
+                            {universities.map((university) => (
+                                <MenuItem key={university.idUniversity} value={university.idUniversity}>
+                                    {university.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Box>
+                    <Box flexBasis={{ xs: "100%", md: "48%" }}>
+                        <TextField
                             label="Role"
                             fullWidth
                             select
                             disabled={!isAdmin}
-                            value={userData.role.idRole}
+                            value={userData.role?.idRole}
                             onChange={(e) => {
                                 const selectedRole = roles.find(role => role.idRole === Number(e.target.value));
                                 if (selectedRole)
@@ -201,7 +254,6 @@ const UserProfilePage = () => {
                     </Box>
                 </Box>
                 {error && <Typography color="error">{error}</Typography>}
-                {success && <Typography color="success">{success}</Typography>}
                 <Button
                     variant="contained"
                     color="primary"
@@ -213,28 +265,73 @@ const UserProfilePage = () => {
                 </Button>
             </form>
 
-            {/* Jobs Table */}
-            <Typography variant="h5" gutterBottom style={{ marginTop: '32px' }}>
-                Jobs Attended
-            </Typography>
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Job Name</TableCell>
-                            <TableCell>Num Of Seats</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {jobs.map(job => (
-                            <TableRow key={job.idJob}>
-                                <TableCell>{job.name}</TableCell>
-                                <TableCell>{job.numOfSeats}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            {permision && user?.role.name != 'candidat' && (
+                <>
+                    <Typography variant="h5" gutterBottom style={{ marginTop: '32px' }}>
+                        Jobs Created
+                    </Typography>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Job Name</TableCell>
+                                    <TableCell>City</TableCell>
+                                    <TableCell>Num Of Seats</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {createdJobs.map(job => (
+                                    <TableRow key={job.idJob}>
+                                        <TableCell>{job.name}</TableCell>
+                                        <TableCell>{job.city}</TableCell>
+                                        <TableCell>{job.numOfSeats}</TableCell>
+                                        <TableCell>{job.deleted ? 'CLOSED' : 'OPENED'}</TableCell>
+                                        <TableCell><IconButton onClick={() => router.push(`/jobs/${job.idJob}`)}><GridViewIcon /></IconButton></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </>
+            )}
+            {user?.role.name != 'admin' && (
+                <>
+                    <Typography variant="h5" gutterBottom style={{ marginTop: '32px' }}>
+                        Jobs Attended
+                    </Typography>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Job Name</TableCell>
+                                    <TableCell>City</TableCell>
+                                    <TableCell>Num Of Seats</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {jobs.map(job => (
+                                    <TableRow key={job.idJob}>
+                                        <TableCell>{job.name}</TableCell>
+                                        <TableCell>{job.city}</TableCell>
+                                        <TableCell>{job.numOfSeats}</TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell><IconButton onClick={() => router.push(`/jobs/${job.idJob}`)}><GridViewIcon /></IconButton></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </>
+            )}
+            <Snackbar
+                open={Boolean(success)}
+                autoHideDuration={6000}
+                onClose={() => setSuccess(null)}
+                message={success}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            />
         </Box>
         );
     }

@@ -1,40 +1,54 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, MenuItem, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, MenuItem, Snackbar, TextField, Typography } from "@mui/material";
 import axios from 'axios';
-import { BACKEND_URL } from "@/constants/constants";
+import { BACKEND_URL, genderTypes } from "@/constants/constants";
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
-type Role = {
-    id: number,
-    name: string
-}
+import { Role } from '@/types/Role.dto';
+import { UniversitiesDTO } from '@/types/Universities.dto';
+import { CreateUserDTO } from '@/types/Users.dto';
 const CreateUserPage = () => {
-    const [userData, setUserData] = useState({
+    const [userData, setUserData] = useState<CreateUserDTO>({
         firstName: '',
         lastName: '',
         jmbg: '',
         phone: '',
         city: '',
-        school: '',
         email: '',
         password: '',
+        gender: '',
+        idUniversity: null,
         idRole: 3
     });
     const [error, setError] = useState<string | null>(null);
     const [roles, setRoles] = useState<Role[]>([]);
+    const [universities, setUniversities] = useState<UniversitiesDTO[]>([])
     const router = useRouter();
     const { user } = useUser();
+    const [message, setMessage] = useState<string | null>(null);
 
-    // Determine allowed roles based on current user role
+
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            try {
+                const response = await axios.get(`${BACKEND_URL}/universities`);
+                setUniversities(response.data);
+            } catch (err) {
+                console.error('Failed to fetch universities');
+            }
+        };
+        fetchUniversities();
+    }, []);
+
     useEffect(() => {
         if (user?.role.name === 'admin') {
-            setRoles([{ id: 1, name: 'Admin' },
-            { id: 2, name: 'Employee' },
-            { id: 3, name: 'Candidate' }]);
+            setRoles([{ idRole: 1, name: 'Admin' },
+            { idRole: 2, name: 'Employee' },
+            { idRole: 3, name: 'Candidate' }]);
         } else if (user?.role.name === 'employee') {
-            setRoles([{ id: 2, name: 'Employee' },
-            { id: 3, name: 'Candidate' }]);
+            setRoles([{ idRole: 2, name: 'Employee' },
+            { idRole: 3, name: 'Candidate' }]);
         }
     }, [user]);
 
@@ -56,21 +70,24 @@ const CreateUserPage = () => {
             setError('JMBG must be 13 digits long');
             return;
         }
+        if (userData.idUniversity == null) {
+            setError('You need to chose university')
+        }
 
         try {
             const accessToken = localStorage.getItem('accessToken');
             await axios.post(`${BACKEND_URL}/users/create`, userData, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            setError('User created successfully');
-            setTimeout(() => router.push('/users'), 2000); // Redirect to user list after 2s
+            setMessage('User created successfully');
+            setTimeout(() => router.push('/users'), 1000); // Redirect to user list after 2s
         } catch (err: any) {
             setError('Failed to create user');
         }
     };
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ mb: '25px', mt: '25px' }}>
             <Typography variant="h4" gutterBottom>Create User</Typography>
             <form onSubmit={handleSubmit}>
                 <TextField
@@ -95,6 +112,7 @@ const CreateUserPage = () => {
                     value={userData.jmbg}
                     onChange={(e) => setUserData({ ...userData, jmbg: e.target.value })}
                     margin="normal"
+                    type='number'
                     required
                 />
                 <TextField
@@ -103,6 +121,7 @@ const CreateUserPage = () => {
                     value={userData.phone}
                     onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
                     margin="normal"
+                    type='number'
                     required
                 />
                 <TextField
@@ -113,12 +132,20 @@ const CreateUserPage = () => {
                     margin="normal"
                 />
                 <TextField
-                    label="School"
+                    label="Gender"
                     fullWidth
-                    value={userData.school}
-                    onChange={(e) => setUserData({ ...userData, school: e.target.value })}
+                    select
+                    value={userData.gender}
+                    onChange={(e) => setUserData({ ...userData, gender: e.target.value })}
                     margin="normal"
-                />
+                    required
+                >
+                    {genderTypes.map((gender) => (
+                        <MenuItem key={gender} value={gender}>
+                            {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                        </MenuItem>
+                    ))}
+                </TextField>
                 <TextField
                     label="Email"
                     fullWidth
@@ -137,6 +164,23 @@ const CreateUserPage = () => {
                     required
                 />
                 <TextField
+                    label="University"
+                    fullWidth
+                    select
+                    value={userData.idUniversity || ''}
+                    onChange={(e) =>
+                        setUserData({ ...userData, idUniversity: Number(e.target.value) })
+                    }
+                    margin="normal"
+                    required
+                >
+                    {universities.map((university) => (
+                        <MenuItem key={university.idUniversity} value={university.idUniversity}>
+                            {university.name}
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <TextField
                     label="Role"
                     fullWidth
                     select
@@ -146,7 +190,7 @@ const CreateUserPage = () => {
                     required
                 >
                     {roles.map(role => (
-                        <MenuItem key={role.id} value={role.id}>
+                        <MenuItem key={role.idRole} value={role.idRole}>
                             {role.name}
                         </MenuItem>
                     ))}
@@ -154,6 +198,13 @@ const CreateUserPage = () => {
                 {error && <Typography color="error">{error}</Typography>}
                 <Button type="submit" variant="contained" color="primary" fullWidth>Create User</Button>
             </form>
+            <Snackbar
+                open={Boolean(message)}
+                autoHideDuration={6000}
+                onClose={() => setMessage(null)}
+                message={message}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            />
         </Container>
     );
 };

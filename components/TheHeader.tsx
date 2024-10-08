@@ -42,9 +42,7 @@ function TheHeader() {
     };
 
     return (
-        <AppBar position="static" sx={{
-            mb: '20px',
-        }}>
+        <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     <AdbIcon sx={{ mr: 2 }} />
@@ -92,11 +90,12 @@ function TheHeader() {
                             <>
                                 <Tooltip title="Open settings">
                                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                        <Avatar alt="Remy Sharp" src="" />
                                         <Typography color='white'>
 
-                                            &nbsp;{user?.firstName}
+                                            {user?.firstName}&nbsp;&nbsp;
                                         </Typography>
+                                        <Avatar alt="Remy Sharp" src="" />
+
                                     </IconButton>
                                 </Tooltip>
                                 <Menu

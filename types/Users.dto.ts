@@ -1,4 +1,5 @@
 import { Role } from "./Role.dto";
+import { UniversitiesDTO } from "./Universities.dto";
 
 export type UsersDTO = {
     idUser: number;
@@ -13,7 +14,9 @@ export type UsersDTO = {
 
     city: string;
 
-    school: string;
+    gender: string;
+
+    school: UniversitiesDTO;
 
     email: string;
 
@@ -32,7 +35,9 @@ export type CreateUserDTO = {
 
     city: string;
 
-    school: string;
+    gender: string;
+
+    idUniversity: number | null;
 
     email: string;
 
@@ -52,7 +57,9 @@ export type UpdateUserDTO = {
 
     city: string;
 
-    school: string
+    gender: string
 
-    role: Role
+    school: UniversitiesDTO | null
+
+    role: Role | null
 }

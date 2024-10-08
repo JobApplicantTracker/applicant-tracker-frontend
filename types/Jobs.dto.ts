@@ -5,6 +5,8 @@ export type JobsDTO = {
 
     name: string;
 
+    city: string;
+
     numOfSeats: number;
 
     description: string;
