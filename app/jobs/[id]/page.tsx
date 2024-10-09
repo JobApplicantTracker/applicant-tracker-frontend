@@ -17,7 +17,7 @@ export default function JobPage() {
     const [loading, setLoading] = useState(true);
     const { user } = useUser();
     const [message, setMessage] = useState<string | null>(null);
-    const isDeletable = user?.role.name === 'admin' || user?.idUser === job?.creator
+    const isDeletable = user?.role.name === 'admin' || user?.idUser === job?.creator?.idUser
     useEffect(() => {
         if (id) {
             axios.get(`${BACKEND_URL}/jobs/job/${id}`)
